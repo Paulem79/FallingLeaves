@@ -13,7 +13,21 @@ java {
 }
 
 repositories {
-  maven("https://repo.papermc.io/repository/maven-public/")
+  mavenLocal()
+  mavenCentral()
+
+  maven { url = uri("https://jitpack.io") }
+  maven {
+    url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+
+    content {
+      includeGroup("org.bukkit")
+      includeGroup("org.spigotmc")
+    }
+  }
+
+  maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+  maven { url = uri("https://oss.sonatype.org/content/repositories/central") }
 }
 
 tasks {

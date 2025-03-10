@@ -1,64 +1,51 @@
 import xyz.jpenilla.resourcefactory.bukkit.BukkitPluginYaml
-import xyz.jpenilla.runpaper.task.RunServer
 
 plugins {
   `my-conventions`
-  id("io.papermc.paperweight.userdev") version "2.0.0-beta.14" apply false
-  id("xyz.jpenilla.run-paper") version "2.3.1" // Adds runServer task for testing
+  id("io.github.patrick.remapper") version "1.+" apply false
   id("xyz.jpenilla.resource-factory-bukkit-convention") version "1.2.0" // Generates plugin.yml based on the Gradle config
   id("com.gradleup.shadow") version "8.3.5"
+}
+
+allprojects {
+  repositories {
+    mavenLocal()
+    mavenCentral()
+
+    maven { url = uri("https://jitpack.io") }
+    maven {
+      url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+
+      content {
+        includeGroup("org.bukkit")
+        includeGroup("org.spigotmc")
+      }
+    }
+
+    maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+    maven { url = uri("https://oss.sonatype.org/content/repositories/central") }
+  }
 }
 
 java.disableAutoTargetJvm() // Allow consuming JVM 21 projects (i.e. paper_1_21_4) even though our release is 17
 
 dependencies {
-  compileOnly("io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT")
+  compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
 
-  implementation(project(":paper_hooks"))
-
-  // Shade the reobf variant
-  runtimeOnly(project(":paper_1_17_1", configuration = "reobf"))
-  runtimeOnly(project(":paper_1_19_4", configuration = "reobf"))
-
-  // For Paper 1.20.5+, we don't need to use the reobf variant.
-  // If you still support spigot, you will need to use the reobf variant,
-  // and remove the Mojang-mapped metadata from the manifest below.
-  runtimeOnly(project(":paper_1_21_4"))
+  implementation(project(":api"))
+  runtimeOnly(project(":nms_1_19_4"))
+  runtimeOnly(project(":nms_1_21_4"))
 }
 
 tasks.assemble {
   dependsOn(tasks.shadowJar)
 }
 
-tasks.jar {
-  manifest.attributes(
-    "paperweight-mappings-namespace" to "mojang",
-  )
-}
-
 // Configure plugin.yml generation
 // - name, version, and description are inherited from the Gradle project.
 bukkitPluginYaml {
-  main = "my.plugin.MyPlugin"
+  main = "ovh.paulem.fallingleaves.FallingLeaves"
   load = BukkitPluginYaml.PluginLoadOrder.STARTUP
   authors.add("Author")
-  apiVersion = "1.17"
-}
-
-tasks.runServer {
-  minecraftVersion("1.21.4")
-}
-
-tasks.register("run1_17_1", RunServer::class) {
-  minecraftVersion("1.17.1")
-  pluginJars.from(tasks.shadowJar.flatMap { it.archiveFile })
-  runDirectory = layout.projectDirectory.dir("run1_17_1")
-  systemProperties["Paper.IgnoreJavaVersion"] = true
-}
-
-tasks.register("run1_19_4", RunServer::class) {
-  minecraftVersion("1.19.4")
-  pluginJars.from(tasks.shadowJar.flatMap { it.archiveFile })
-  runDirectory = layout.projectDirectory.dir("run1_19_4")
-  systemProperties["Paper.IgnoreJavaVersion"] = true
+  apiVersion = "1.19"
 }
